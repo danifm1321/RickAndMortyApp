@@ -52,14 +52,6 @@ struct CharacterRow : View {
                     Text(character.location.name)
                 }
                 .padding(.vertical)
-
-                VStack(alignment: .leading) {
-                    Text("Number of episodes they was seen")
-                        .foregroundColor(.gray)
-                    
-                    Text(String(character.episode.count))
-                }
-                .padding(.vertical)
             }
             .padding()
         }
