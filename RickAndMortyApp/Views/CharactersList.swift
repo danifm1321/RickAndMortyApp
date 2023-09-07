@@ -9,8 +9,8 @@ import SwiftUI
 
 struct CharactersList: View {
     
-    @State private var characters : [Character] = []
-    
+    @State private var pageInfo : PageInfo = PageInfo()
+
     @State private var filteredCharacters : [Character] = []
     @State private var searchText = ""
     
@@ -21,31 +21,20 @@ struct CharactersList: View {
     @State private var dataLoaded = false
     
     var body: some View {
-        NavigationStack {
-            List(filteredCharacters) { character in
-                
-                NavigationLink(value: character) {
-                    CharacterRow(character: character)
-                }
-                //This improves the list performance when filtering
-                .id(character.id)
+        List(filteredCharacters) { character in
+            
+            NavigationLink(value: character) {
+                CharacterRow(character: character)
             }
-            .searchable(text: $searchText, prompt: "Search by name")
-            .onChange(of: searchText) { _ in
-                
-                if searchText == "" {
-                    
-                    //If the search text is blank, show all the characters
-                    filteredCharacters = characters
-                } else {
-                    
-                    //Else, we filter by name lowercased, to allow more flexibility introducing the name
-                    filteredCharacters = characters.filter({$0.name.lowercased().contains(searchText.lowercased())})
-                }
-            }
-            .navigationDestination(for: Character.self) { character in
-                CharacterDetailView(character: character)
-            }
+            //This improves the list performance when filtering
+            .id(character.id)
+        }
+        .searchable(text: $searchText, prompt: "Search by name")
+        .onChange(of: searchText) { _ in
+            reloadFilteredCharacters()
+        }
+        .onChange(of: pageInfo.results) {_ in
+            reloadFilteredCharacters()
         }
         //Alert if an error has occurred
         .alert(errorText, isPresented: $showErrorAlert) {
@@ -56,6 +45,18 @@ struct CharactersList: View {
             if !dataLoaded {
                 getCharacters()
             }
+        }
+    }
+    
+    func reloadFilteredCharacters() {
+        if searchText == "" {
+            
+            //If the search text is blank, show all the characters
+            filteredCharacters = pageInfo.results
+        } else {
+            
+            //Else, we filter by name lowercased, to allow more flexibility introducing the name
+            filteredCharacters = pageInfo.results.filter({$0.name.lowercased().contains(searchText.lowercased())})
         }
     }
     
@@ -89,12 +90,9 @@ struct CharactersList: View {
                         self.showErrorAlert = true
                         self.errorText = "An error has occurred. Code \(statusCode)."
                     } else {
-                        characters = parseCharacterList(data: data!)
-                        filteredCharacters = characters
+                        pageInfo = parsePageInfo(data: data!)
                         dataLoaded = true
                     }
-                    
-                    
                 } else {
                     self.showErrorAlert = true
                     self.errorText = "An error has occurred. Please, check your connection or try again later."

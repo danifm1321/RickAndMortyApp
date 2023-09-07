@@ -7,29 +7,18 @@
 
 import Foundation
 
-//Parse a list of characters
-func parseCharacterList(data : Data) -> [Character] {
-    var characters : [Character] = []
+//Parse the page info
+func parsePageInfo(data : Data) -> PageInfo {
+    var pageInfo : PageInfo = PageInfo()
     
     do {
-        //Getting the JSON as an object
-        let json = try JSONSerialization.jsonObject(with: data, options: [])
-        
-        //Getting only the results of the JSON
-        if let jsonObject = json as? [String: Any], let results = jsonObject["results"] as? [[String: Any]] {
-           
-            //Parsing only the results
-            let jsonData = try JSONSerialization.data(withJSONObject: results, options: [])
-            characters = try JSONDecoder().decode([Character].self, from: jsonData)
-            
-        } else {
-            print("An error has occurred: 'results' not found.")
-        }
+        //Parsing the results
+        pageInfo = try JSONDecoder().decode(PageInfo.self, from: data)
     } catch {
         print("An error has occurred: \(error)")
     }
     
-    return characters
+    return pageInfo
 }
 
 
