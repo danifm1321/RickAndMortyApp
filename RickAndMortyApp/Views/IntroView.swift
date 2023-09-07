@@ -44,7 +44,7 @@ struct IntroView : View {
                     PaginableList()
                 }
             }
-            .navigationDestination(for: Character.self) { character in
+            .navigationDestination(for: RickAndMortyCharacter.self) { character in
                 CharacterDetailView(character: character)
             }
         }

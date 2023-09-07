@@ -9,5 +9,5 @@ import Foundation
 
 struct PageInfo : Codable, Hashable {
     var info : Info = Info()
-    var results : [Character] = []
+    var results : [RickAndMortyCharacter] = []
 }

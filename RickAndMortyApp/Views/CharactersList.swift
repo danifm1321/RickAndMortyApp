@@ -11,7 +11,8 @@ struct CharactersList: View {
     
     @State private var pageInfo : PageInfo = PageInfo()
 
-    @State private var filteredCharacters : [Character] = []
+    @State private var characters : [RickAndMortyCharacter] = []
+    @State private var filteredCharacters : [RickAndMortyCharacter] = []
     @State private var searchText = ""
     
     @State private var showErrorAlert = false
@@ -26,7 +27,7 @@ struct CharactersList: View {
             NavigationLink(value: character) {
                 CharacterRow(character: character)
             }
-            //This improves the list performance when filtering
+            //This improves the list performance when updating
             .id(character.id)
         }
         .searchable(text: $searchText, prompt: "Search by name")
@@ -43,7 +44,15 @@ struct CharactersList: View {
         .onAppear {
             //It is necessary to load the data only once
             if !dataLoaded {
-                getCharacters()
+                
+                //Building the API URL
+                guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
+                    showErrorAlert = true
+                    errorText = "An error occurred bulding the URL."
+                    return
+                }
+                
+                getCharacters(url: url)
             }
         }
     }
@@ -52,26 +61,23 @@ struct CharactersList: View {
         if searchText == "" {
             
             //If the search text is blank, show all the characters
-            filteredCharacters = pageInfo.results
+            filteredCharacters = characters
         } else {
             
             //Else, we filter by name lowercased, to allow more flexibility introducing the name
-            filteredCharacters = pageInfo.results.filter({$0.name.lowercased().contains(searchText.lowercased())})
+            filteredCharacters = characters.filter({$0.name.lowercased().contains(searchText.lowercased())})
         }
     }
     
-    func getCharacters() {
-        //Building the API URL
-        guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
-            showErrorAlert = true
-            errorText = "An error occurred bulding the URL."
-            return
-        }
+    func getCharacters(url : URL) {
         
-        //Creating the session and the task
-        let session = URLSession.shared
-        let task = session.dataTask(with: url) { (data, response, error) in
-            
+        let configuration = URLSessionConfiguration.default
+        configuration.requestCachePolicy = .returnCacheDataElseLoad
+        
+            //Creating the session and the task
+            let session = URLSession(configuration: configuration)
+            let task = session.dataTask(with: url) { (data, response, error) in
+                
             //Notify if an error has occurred
             if error != nil {
                 self.showErrorAlert = true
@@ -91,7 +97,18 @@ struct CharactersList: View {
                         self.errorText = "An error has occurred. Code \(statusCode)."
                     } else {
                         pageInfo = parsePageInfo(data: data!)
+                        characters.append(contentsOf: pageInfo.results)
                         dataLoaded = true
+                        
+                        if pageInfo.info.next != nil {
+                            guard let urlAux = URL(string: pageInfo.info.next!) else {
+                                showErrorAlert = true
+                                errorText = "An error occurred bulding the URL."
+                                return
+                            }
+                            
+                            getCharacters(url: urlAux)
+                        }
                     }
                 } else {
                     self.showErrorAlert = true

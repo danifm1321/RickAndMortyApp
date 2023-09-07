@@ -44,7 +44,11 @@ struct PaginableList : View {
             .padding(.horizontal, 10)
             
             List(pageInfo.results) { character in
-                CharacterRow(character: character)
+                NavigationLink(value: character) {
+                    CharacterRow(character: character)
+                }
+                //This improves the list performance when updating
+                .id(character.id)
             }
             .searchable(text: $searchText, prompt: "Search by name")
             .onChange(of: searchText) {_ in

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CharacterRow : View {
     
-    var character : Character
+    var character : RickAndMortyCharacter
     
     var body: some View {
         HStack {
