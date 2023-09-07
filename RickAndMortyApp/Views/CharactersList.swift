@@ -17,6 +17,9 @@ struct CharactersList: View {
     @State private var showErrorAlert = false
     @State private var errorText = ""
     
+    //Variable that controls the petition is launched only once
+    @State private var dataLoaded = false
+    
     var body: some View {
         NavigationStack {
             List(filteredCharacters) { character in
@@ -27,7 +30,7 @@ struct CharactersList: View {
                 //This improves the list performance when filtering
                 .id(character.id)
             }
-            .searchable(text: $searchText)
+            .searchable(text: $searchText, prompt: "Search by name")
             .onChange(of: searchText) { _ in
                 
                 if searchText == "" {
@@ -49,7 +52,10 @@ struct CharactersList: View {
             Button("Ok") {}
         }
         .onAppear {
-            getCharacters()
+            //It is necessary to load the data only once
+            if !dataLoaded {
+                getCharacters()
+            }
         }
     }
     
@@ -85,6 +91,7 @@ struct CharactersList: View {
                     } else {
                         characters = parseCharacterList(data: data!)
                         filteredCharacters = characters
+                        dataLoaded = true
                     }
                     
                     

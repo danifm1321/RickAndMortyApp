@@ -19,6 +19,7 @@
 		9BB02C272AA8A90100F50C34 /* CharacterRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB02C262AA8A90100F50C34 /* CharacterRow.swift */; };
 		9BB02C292AA8A96600F50C34 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB02C282AA8A96600F50C34 /* Extensions.swift */; };
 		9BB02C2B2AA8B34E00F50C34 /* Episode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB02C2A2AA8B34E00F50C34 /* Episode.swift */; };
+		9BB02C2D2AA8E13E00F50C34 /* EpisodeRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB02C2C2AA8E13E00F50C34 /* EpisodeRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		9BB02C262AA8A90100F50C34 /* CharacterRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterRow.swift; sourceTree = "<group>"; };
 		9BB02C282AA8A96600F50C34 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9BB02C2A2AA8B34E00F50C34 /* Episode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Episode.swift; sourceTree = "<group>"; };
+		9BB02C2C2AA8E13E00F50C34 /* EpisodeRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeRow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 				9BA400F92AA88B55004575BF /* CharactersList.swift */,
 				9B5046A52AA88E25001A36D2 /* CharacterDetailView.swift */,
 				9BB02C262AA8A90100F50C34 /* CharacterRow.swift */,
+				9BB02C2C2AA8E13E00F50C34 /* EpisodeRow.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +196,7 @@
 				9BA400F82AA88B55004575BF /* RickAndMortyAppApp.swift in Sources */,
 				9BB02C252AA89B7500F50C34 /* Functions.swift in Sources */,
 				9BB02C1F2AA89B4800F50C34 /* Character.swift in Sources */,
+				9BB02C2D2AA8E13E00F50C34 /* EpisodeRow.swift in Sources */,
 				9BB02C232AA89B5800F50C34 /* Location.swift in Sources */,
 				9BB02C212AA89B5100F50C34 /* Origin.swift in Sources */,
 			);
