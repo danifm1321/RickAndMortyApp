@@ -10,7 +10,7 @@ import SwiftUI
 //Detail view of a character
 struct CharacterDetailView : View {
     
-    let character : Character
+    let character : RickAndMortyCharacter
     
     @State private var episodes : [Episode] = []
 

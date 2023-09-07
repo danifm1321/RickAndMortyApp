@@ -9,9 +9,10 @@ import SwiftUI
 
 struct CharactersList: View {
     
-    @State private var characters : [Character] = []
-    
-    @State private var filteredCharacters : [Character] = []
+    @State private var pageInfo : PageInfo = PageInfo()
+
+    @State private var characters : [RickAndMortyCharacter] = []
+    @State private var filteredCharacters : [RickAndMortyCharacter] = []
     @State private var searchText = ""
     
     @State private var showErrorAlert = false
@@ -21,31 +22,20 @@ struct CharactersList: View {
     @State private var dataLoaded = false
     
     var body: some View {
-        NavigationStack {
-            List(filteredCharacters) { character in
-                
-                NavigationLink(value: character) {
-                    CharacterRow(character: character)
-                }
-                //This improves the list performance when filtering
-                .id(character.id)
+        List(filteredCharacters) { character in
+            
+            NavigationLink(value: character) {
+                CharacterRow(character: character)
             }
-            .searchable(text: $searchText, prompt: "Search by name")
-            .onChange(of: searchText) { _ in
-                
-                if searchText == "" {
-                    
-                    //If the search text is blank, show all the characters
-                    filteredCharacters = characters
-                } else {
-                    
-                    //Else, we filter by name lowercased, to allow more flexibility introducing the name
-                    filteredCharacters = characters.filter({$0.name.lowercased().contains(searchText.lowercased())})
-                }
-            }
-            .navigationDestination(for: Character.self) { character in
-                CharacterDetailView(character: character)
-            }
+            //This improves the list performance when updating
+            .id(character.id)
+        }
+        .searchable(text: $searchText, prompt: "Search by name")
+        .onChange(of: searchText) { _ in
+            reloadFilteredCharacters()
+        }
+        .onChange(of: pageInfo.results) {_ in
+            reloadFilteredCharacters()
         }
         //Alert if an error has occurred
         .alert(errorText, isPresented: $showErrorAlert) {
@@ -54,23 +44,40 @@ struct CharactersList: View {
         .onAppear {
             //It is necessary to load the data only once
             if !dataLoaded {
-                getCharacters()
+                
+                //Building the API URL
+                guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
+                    showErrorAlert = true
+                    errorText = "An error occurred bulding the URL."
+                    return
+                }
+                
+                getCharacters(url: url)
             }
         }
     }
     
-    func getCharacters() {
-        //Building the API URL
-        guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
-            showErrorAlert = true
-            errorText = "An error occurred bulding the URL."
-            return
-        }
-        
-        //Creating the session and the task
-        let session = URLSession.shared
-        let task = session.dataTask(with: url) { (data, response, error) in
+    func reloadFilteredCharacters() {
+        if searchText == "" {
             
+            //If the search text is blank, show all the characters
+            filteredCharacters = characters
+        } else {
+            
+            //Else, we filter by name lowercased, to allow more flexibility introducing the name
+            filteredCharacters = characters.filter({$0.name.lowercased().contains(searchText.lowercased())})
+        }
+    }
+    
+    func getCharacters(url : URL) {
+        
+        let configuration = URLSessionConfiguration.default
+        configuration.requestCachePolicy = .returnCacheDataElseLoad
+        
+            //Creating the session and the task
+            let session = URLSession(configuration: configuration)
+            let task = session.dataTask(with: url) { (data, response, error) in
+                
             //Notify if an error has occurred
             if error != nil {
                 self.showErrorAlert = true
@@ -89,12 +96,20 @@ struct CharactersList: View {
                         self.showErrorAlert = true
                         self.errorText = "An error has occurred. Code \(statusCode)."
                     } else {
-                        characters = parseCharacterList(data: data!)
-                        filteredCharacters = characters
+                        pageInfo = parsePageInfo(data: data!)
+                        characters.append(contentsOf: pageInfo.results)
                         dataLoaded = true
+                        
+                        if pageInfo.info.next != nil {
+                            guard let urlAux = URL(string: pageInfo.info.next!) else {
+                                showErrorAlert = true
+                                errorText = "An error occurred bulding the URL."
+                                return
+                            }
+                            
+                            getCharacters(url: urlAux)
+                        }
                     }
-                    
-                    
                 } else {
                     self.showErrorAlert = true
                     self.errorText = "An error has occurred. Please, check your connection or try again later."

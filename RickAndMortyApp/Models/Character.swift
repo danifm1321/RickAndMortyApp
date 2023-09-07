@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct Character : Codable, Hashable, Identifiable {
+struct RickAndMortyCharacter : Codable, Hashable, Identifiable {
     var id : Int64?
     var name : String = ""
     var status : String = ""
