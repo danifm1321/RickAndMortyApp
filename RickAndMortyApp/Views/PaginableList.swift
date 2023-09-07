@@ -10,18 +10,55 @@ import SwiftUI
 struct PaginableList : View {
     
     @State private var pageInfo : PageInfo = PageInfo()
-    
-    @State private var showErrorAlert = false
     @State private var errorText = ""
-    
     @State private var dataLoaded = false
-    
     @State private var searchText = ""
-
     
     var body: some View {
         
         VStack {
+                
+            //To avoid making a request everytime the user introduces a new letter, we use TextField and only make a request when the user presses "Intro"
+            TextField("Search by name", text: $searchText, onCommit: {
+                if searchText == "" {
+                    //Building the API URL
+                    guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
+                        errorText = "An error occurred bulding the URL."
+                        pageInfo = PageInfo()
+                        return
+                    }
+                    
+                    getPageInfo(url: url)
+                } else {
+                    //Building the API URL
+                    guard let url = URL(string: "https://rickandmortyapi.com/api/character/?name=\(searchText)") else {
+                        errorText = "An error occurred bulding the URL."
+                        pageInfo = PageInfo()
+                        return
+                    }
+                    
+                    getPageInfo(url: url)
+                }
+            })
+            .textFieldStyle(RoundedBorderTextFieldStyle())
+            .padding()
+            
+            if errorText == "" {
+                List(pageInfo.results) { character in
+                    NavigationLink(value: character) {
+                        CharacterRow(character: character)
+                    }
+                    //This improves the list performance when updating
+                    .id(character.id)
+                }
+            } else {
+                Spacer()
+                
+                Text(errorText)
+            }
+            
+            Spacer()
+
             HStack {
                 if pageInfo.info.prev != nil {
                     Button(action: {loadPreviousCharacters()}) {
@@ -43,48 +80,14 @@ struct PaginableList : View {
             }
             .padding(.horizontal, 10)
             
-            List(pageInfo.results) { character in
-                NavigationLink(value: character) {
-                    CharacterRow(character: character)
-                }
-                //This improves the list performance when updating
-                .id(character.id)
-            }
-            .searchable(text: $searchText, prompt: "Search by name")
-            .onChange(of: searchText) {_ in
-                if searchText == "" {
-                    //Building the API URL
-                    guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
-                        showErrorAlert = true
-                        errorText = "An error occurred bulding the URL."
-                        return
-                    }
-                    
-                    getPageInfo(url: url)
-                } else {
-                    //Building the API URL
-                    guard let url = URL(string: "https://rickandmortyapi.com/api/character/?name=\(searchText)") else {
-                        showErrorAlert = true
-                        errorText = "An error occurred bulding the URL."
-                        return
-                    }
-                    
-                    getPageInfo(url: url)
-                }
-            }
-            
             Spacer()
-        }
-        //Alert if an error has occurred
-        .alert(errorText, isPresented: $showErrorAlert) {
-            Button("Ok") {}
         }
         .onAppear() {
             
             //Building the API URL
             guard let url = URL(string: "https://rickandmortyapi.com/api/character") else {
-                showErrorAlert = true
                 errorText = "An error occurred bulding the URL."
+                pageInfo = PageInfo()
                 return
             }
             
@@ -99,8 +102,8 @@ struct PaginableList : View {
         if pageInfo.info.prev != nil {
             //Building the API URL
             guard let url = URL(string: pageInfo.info.prev!) else {
-                showErrorAlert = true
                 errorText = "An error occurred bulding the URL."
+                pageInfo = PageInfo()
                 return
             }
             
@@ -113,8 +116,8 @@ struct PaginableList : View {
             
             //Building the API URL
             guard let url = URL(string: pageInfo.info.next!) else {
-                showErrorAlert = true
                 errorText = "An error occurred bulding the URL."
+                pageInfo = PageInfo()
                 return
             }
             
@@ -132,8 +135,8 @@ struct PaginableList : View {
             
             //Notify if an error has occurred
             if error != nil {
-                self.showErrorAlert = true
-                self.errorText = "An error has occurred. Please, check your connection or try again later."
+                errorText = "An error has occurred. Please, check your connection or try again later."
+                pageInfo = PageInfo()
             } else {
                 
                 //Getting the response as HTTPURLResponse to get the status code, in case there is some failure in the API
@@ -145,15 +148,16 @@ struct PaginableList : View {
                     if statusCode != 200 {
                         
                         //Notify if the status code isn't 200
-                        self.showErrorAlert = true
-                        self.errorText = "An error has occurred. Code \(statusCode)."
+                        errorText = "An error has occurred. Code \(statusCode)."
+                        pageInfo = PageInfo()
                     } else {
                         pageInfo = parsePageInfo(data: data!)
                         dataLoaded = true
+                        errorText = ""
                     }
                 } else {
-                    self.showErrorAlert = true
-                    self.errorText = "An error has occurred. Please, check your connection or try again later."
+                    errorText = "An error has occurred. Please, check your connection or try again later."
+                    pageInfo = PageInfo()
                 }
             }
         }
