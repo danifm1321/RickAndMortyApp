@@ -49,7 +49,8 @@ struct CharactersList: View {
         .onChange(of: searchText) { _ in
             reloadFilteredCharacters()
         }
-        .onChange(of: pageInfo.results) {_ in
+        //If the characters update, the filtered characters need to be updated
+        .onChange(of: characters) {_ in
             reloadFilteredCharacters()
         }
         .onAppear {
@@ -82,12 +83,13 @@ struct CharactersList: View {
     
     func getCharacters(url : URL) {
         
+        //Setting the cache policy
         let configuration = URLSessionConfiguration.default
         configuration.requestCachePolicy = .returnCacheDataElseLoad
         
-            //Creating the session and the task
-            let session = URLSession(configuration: configuration)
-            let task = session.dataTask(with: url) { (data, response, error) in
+        //Creating the session and the task
+        let session = URLSession(configuration: configuration)
+        let task = session.dataTask(with: url) { (data, response, error) in
                 
             //Notify if an error has occurred
             if error != nil {
@@ -108,10 +110,13 @@ struct CharactersList: View {
                         pageInfo = PageInfo()
                     } else {
                         pageInfo = parsePageInfo(data: data!)
+                        
+                        //Add the new characters to de array
                         characters.append(contentsOf: pageInfo.results)
                         dataLoaded = true
                         errorText = ""
                         
+                        //If a next page exists, load it
                         if pageInfo.info.next != nil {
                             guard let urlAux = URL(string: pageInfo.info.next!) else {
                                 errorText = "An error occurred bulding the URL."

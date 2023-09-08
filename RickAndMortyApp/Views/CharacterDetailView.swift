@@ -14,7 +14,6 @@ struct CharacterDetailView : View {
     
     @State private var episodes : [Episode] = []
 
-    @State private var showErrorAlert = false
     @State private var errorText = ""
     
     var body: some View {
@@ -71,19 +70,20 @@ struct CharacterDetailView : View {
                     Text("List of episodes (\(character.episode.count))")
                         .font(.title3)
                     
-                    ForEach(episodes) { episode in
-                        LazyVStack(alignment: .leading) {
-                            EpisodeRow(episode: episode)
+                    if errorText == "" {
+                        ForEach(episodes) { episode in
+                            LazyVStack(alignment: .leading) {
+                                EpisodeRow(episode: episode)
+                            }
                         }
+                    } else {
+                        Text(errorText)
                     }
                 }
                 .padding()
             }
         }
         .padding()
-        .alert(errorText, isPresented: $showErrorAlert) {
-            Button("Ok") {}
-        }
         .onAppear {
             getEpisodes()
         }
@@ -91,22 +91,28 @@ struct CharacterDetailView : View {
     
     func getEpisodes() {
         
+        errorText = ""
+        
         for episode in character.episode {
+            
             //Building the API URL
             guard let url = URL(string: episode) else {
-                showErrorAlert = true
                 errorText = "An error occurred bulding the URL."
                 return
             }
             
+            //Setting the cache policy
+            let configuration = URLSessionConfiguration.default
+            configuration.requestCachePolicy = .returnCacheDataElseLoad
+            
             //Creating the session and the task
-            let session = URLSession.shared
+            let session = URLSession(configuration: configuration)
             let task = session.dataTask(with: url) { (data, response, error) in
                 
                 //Notify if an error has occurred
                 if error != nil {
-                    self.showErrorAlert = true
                     self.errorText = "An error has occurred. Please, check your connection or try again later."
+                    return
                 } else {
                     
                     //Getting the response as HTTPURLResponse to get the status code, in case there is some failure in the API
@@ -118,15 +124,15 @@ struct CharacterDetailView : View {
                         if statusCode != 200 {
                             
                             //Notify if the status code isn't 200
-                            self.showErrorAlert = true
                             self.errorText = "An error has occurred. Code \(statusCode)."
+                            return
                         } else {
                             episodes.append(parseEpisode(data: data!))
                         }
                         
                     } else {
-                        self.showErrorAlert = true
                         self.errorText = "An error has occurred. Please, check your connection or try again later."
+                        return
                     }
                 }
             }

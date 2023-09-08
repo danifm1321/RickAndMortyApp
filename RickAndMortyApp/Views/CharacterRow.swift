@@ -17,6 +17,7 @@ struct CharacterRow : View {
         HStack {
             
             ZStack {
+                //Show the cached image
                 if let image = cachedImage {
                     Image(uiImage: image)
                         .resizable()
@@ -30,13 +31,13 @@ struct CharacterRow : View {
             }
             .frame(width: 200, height: 200)
             .onAppear {
+                
+                //Getting the image
                 if let url = URL(string: character.image) {
-                    descargarImagenDesdeURL(url) { (imagen) in
-                        if let imagen = imagen {
-                            // La imagen se ha descargado y almacenado en caché correctamente
-                            self.cachedImage = imagen
+                    downloadImages(url: url) { image in
+                        if let image = image {
+                            self.cachedImage = image
                         } else {
-                            // No se pudo descargar la imagen
                             print("Can't download the image")
                         }
                     }
@@ -74,8 +75,8 @@ struct CharacterRow : View {
     }
     
     
-    func descargarImagenDesdeURL(_ url: URL, completion: @escaping (UIImage?) -> Void) {
-        // Comprobar si la imagen está en la caché
+    func downloadImages(url: URL, completion: @escaping (UIImage?) -> Void) {
+        //Check if the image is already cached
         if let cachedResponse = URLCache.shared.cachedResponse(for: URLRequest(url: url)) {
             if let image = UIImage(data: cachedResponse.data) {
                 completion(image)
@@ -83,17 +84,17 @@ struct CharacterRow : View {
             }
         }
         
-        // Si la imagen no está en la caché, la descargamos
+        //Download the image
         let session = URLSession.shared
-        let tarea = session.dataTask(with: url) { (data, response, error) in
+        let task = session.dataTask(with: url) { (data, response, error) in
             if let error = error {
-                print("Error al descargar la imagen: \(error)")
+                print("Error downloading the image: \(error)")
                 completion(nil)
                 return
             }
             
             if let data = data, let image = UIImage(data: data) {
-                // Almacenar la imagen en la caché
+                //Store the image in cache
                 let cachedData = CachedURLResponse(response: response!, data: data)
                 URLCache.shared.storeCachedResponse(cachedData, for: URLRequest(url: url))
                 
@@ -103,6 +104,6 @@ struct CharacterRow : View {
             }
         }
         
-        tarea.resume()
+        task.resume()
     }
 }

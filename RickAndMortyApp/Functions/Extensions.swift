@@ -17,6 +17,7 @@ extension View {
         else { self }
     }
     
+    //Style for all the buttons
     func buttonStyle() -> some View {
         return self.padding().background(.cyan).cornerRadius(10)
     }

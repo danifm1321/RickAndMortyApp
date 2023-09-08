@@ -127,9 +127,11 @@ struct PaginableList : View {
     
     func getPageInfo(url : URL) {
         
+        //Setting the cache policy
         let configuration = URLSessionConfiguration.default
         configuration.requestCachePolicy = .returnCacheDataElseLoad
 
+        //Creating the session and the task
         let session = URLSession(configuration: configuration)
         let task = session.dataTask(with: url) { (data, response, error) in
             
